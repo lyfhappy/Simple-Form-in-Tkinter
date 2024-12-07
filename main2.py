@@ -57,9 +57,43 @@ def submit_form():
         # Close the connection
         print(f"Data Inserted: {cursor.lastrowid}")
         cursor.close()
-        db_connection.close()
     
+def search_form():
+    name1 = name_entry.get()
+    mobile1 = mobile_entry.get()
+    # Validation
+    #if not name1 or not mobile1:
+        #messagebox.showerror("Input Error", "Please fill out Name and Mobile Number.")
+        #return
+    try:
+       cursor = db_connection.cursor()
 
+        # Build SQL query dynamically
+       sql = "SELECT name, mobile_num, grade, gender, Misc FROM personalinfo WHERE 1=1"
+       if name1:
+            sql += f" AND name LIKE '%{name1}%'"
+       if mobile1:
+            sql += f" AND mobile_num LIKE '%{mobile1}%'"
+
+        # Execute the query
+       cursor.execute(sql)
+       myresult = cursor.fetchall()
+
+        # Prepare results for display
+       if not myresult:
+            messagebox.showinfo("No Results", "No matching records found.")
+       else:
+            user_info = "\n".join(
+                f"Name: {x[0]}, Mobile: {x[1]}, Grade: {x[2]}, Gender: {x[3]}, Misc: {x[4]}"
+                for x in myresult
+            )
+            messagebox.showinfo("Search Results", user_info)
+    except mysql.connector.Error as error:
+        print(f"Error: {error}")
+        db_connection.rollback()
+    
+    finally :
+        cursor.close() 
 
 #Create Main Window
 window = Tk()
@@ -144,7 +178,7 @@ submit_button = Button(inner_frame, text="Submit", bg="darkgreen", fg="white", f
 submit_button.grid(row=10, column=0, sticky="EW",columnspan=2,pady=20,padx=5)
 
 # Search Button 
-search_button = Button(inner_frame,text="Search", bg="darkgreen", fg="white", font=("Arial", 12))
+search_button = Button(inner_frame,text="Search", bg="darkgreen", fg="white", font=("Arial", 12),command=search_form)
 search_button.grid(row=10, column=2,sticky="E", columnspan=2,pady=20,padx = 5)
 
 window.mainloop()
